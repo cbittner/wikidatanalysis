@@ -39,15 +39,15 @@
 }
 
     #creating a dataframe from a Wikidata SPARQL query with a large result set (returns dataframe)
-      #the built-in parser of the SPARQL-Package cannot very large query-results
+      #the built-in parser of the SPARQL-Package cannot handle very large query-results
       #therefore, this function saves the query into a local file in the R working directory
-      #and runs the spaql query via a curl command (curl must be installed on the commupter)
+      #and runs the SPARQL query via a curl command (curl must be installed on the commupter)
    
    sparql_to_df <- function (query, endpoint, geoCol=TRUE){
-    #query: the SPARQL query (string)
-    #endpoint: the url of hte SPARQL endpoint (string)
-    #geocol: if true, the result contains geographic coordinates (https://www.wikidata.org/wiki/Property:P625)
-   
+      #query: the SPARQL query (string)
+      #endpoint: the url of hte SPARQL endpoint (string)
+      #geocol: if true, the result contains geographic coordinates (https://www.wikidata.org/wiki/Property:P625)
+
     #write the query to a file
     write(query, file = "query.sparql")
     
@@ -74,5 +74,37 @@
     return(df)
   }
 
+#transfering the dataframe to a postgis table
+    df_to_postgis <- function(df, query, endpoint, pgtable, geoCol=TRUE){
+        #df: the dataframe you want to bring to postgis
+        #query: the SPARQL query (string)
+        #endpoint: the url of hte SPARQL endpoint (string)
+        #pgtable: a name fo the Postgis table
+        #geocol: if true, the result contains geographic coordinates (https://www.wikidata.org/wiki/Property:P625)
+    
+      #creating the table
+        dbWriteTable(con, pgtable, df)
+      
+      #adding the query details as a comment to the table
+        time_now <- Sys.time()
+        date_now <- Sys.Date()
 
+        pg_comment <- paste("COMMENT ON TABLE ", pgtable, " IS '",
+                            "sparql query: \n", query, 
+                            "\n \n endpoint: ", endpoint, 
+                            "\n date: ", date_now, " ", time_now,"';", sep="")
+        sqldf(pg_comment)
+      
+      #if input contains coordinates, create point geometries in PG (SRID 4326)
+        if (geoCol==TRUE){
+
+          pg_alter <- paste("alter table ",pgtable, " add column geom geometry;",  sep="")
+          pg_makepoint <- paste("update ",pgtable, " set geom = st_MakePoint(lng, lat);",  sep="")
+          pg_setsrid <- paste("update ",pgtable, " SET geom = ST_SetSRID(geom, 4326);",  sep="")
+          sqldf(pg_alter)
+          sqldf(pg_makepoint)
+          sqldf(pg_setsrid)
+          sqldf("select populate_geometry_columns();")
+        }
+    }
   
