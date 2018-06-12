@@ -1,8 +1,5 @@
 #required packages 
-{
-  #install.packages("SPARQL")
-  require(SPARQL)
-  
+ 
   #postgres connection parameters
   {
     pg_dbname="[DBNAME]"
@@ -29,12 +26,6 @@
           sqldf.RPostgreSQL.dbname = pg_dbname,
           sqldf.RPostgreSQL.host = pg_host,
           sqldf.RPostgreSQL.port = pg_port)
-  
-  #install.packages("randomcoloR")
-  library(randomcoloR)
-  
-  #install.packages("leaflet")
-  require(leaflet)
   
 }
 
