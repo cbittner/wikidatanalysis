@@ -67,7 +67,7 @@
           addCircleMarkers(
             lng=geo_semantics[[i]]$lng,
             lat=geo_semantics[[i]]$lat,
-            popup=paste('<a href="', geo_semantics[[i]]$item,
+            popup=paste('<a target="_blank" href="', geo_semantics[[i]]$item,
                         '">',
                         geo_semantics[[i]]$itemLabel,
                         '</a>"',
