@@ -58,7 +58,8 @@
       
       #creating the map object
       m <- leaflet() %>%
-        addTiles(group = "OSM (default)") #%>%  # Add default OpenStreetMap map tiles
+        # Add OpenStreetMap map tiles
+        addProviderTiles(providers$OpenStreetMap)
       
       #add layers from query results
       for (i in 1:length(semantics$item)){
